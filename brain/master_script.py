@@ -11,10 +11,10 @@ class Brain():
 		self.limp = False
 
 		self.idx = 0
-		self.traj1 = np.array([[95,90,-100],
-							   [95,-90,-100],
-							   [-95,90,-100],
-							   [-95,-90,-100]])
+		self.traj1 = np.array([[[95,90,-100],[95,-90,-100],[-95,90,-100],[-95,-90,-100]],
+							   [[95,90,-100],[95,-90,-100],[-95,90,-100],[-95,-90,-100]],
+							   [[95,90,-100],[95,-90,-100],[-95,90,-100],[-95,-90,-100]],
+							   [[95,90,-100],[95,-90,-100],[-95,90,-100],[-95,-90,-100]]])
 		self.traj1_len = self.traj1.shape
 
 	def update_sensor_state(self):
@@ -26,6 +26,8 @@ class Brain():
 	def update_endpoint_state(self):
 		self.endpoint_state = self.traj1[self.idx-1]
 		self.idx+=1
+		if self.idx>self.traj1_len:
+			self.limp = True
 
 	def update_actuator_state(self):
 		self.actuator_state = ik(self.endpoint_state,self.actuator_state)
@@ -40,6 +42,10 @@ class Brain():
 			## Iterate over the actuator ID's and command the actuator states over the serial interface
 			for i,ID in enumerate(actuator_interface.ID_list):
 				servo.LobotSerialServoMove(actuator_interface.serial_port,ID,actuator_commands[i],self.time_step)
+
+	def print_diagnostics(self):
+		print("Endpoint State: ", self.endpoint_state)
+		print("Actuator State: ", self.actuator_state)
 
 class Actuator_Interface():
 	def __init__(self,serial_port,ID_list,calibration):
@@ -58,6 +64,8 @@ class Actuator_Interface():
 
 
 def main():	
+	sim_on = True
+
 	Actuator_Interface = Actuator_Interface(serial.Serial('/dev/ttyS0',115200,timeout=1),
 										    (1,2,3,4,5,6,7,8,9,10,11,12),
 											(np.array([[521.0,295.0,707.0],
@@ -71,18 +79,26 @@ def main():
 
 	Brain = Brain(Actuator_Interface.get_initial_actuator_state())
 
-	sim_on = True
 	if sim_on:
 		Simulator = sim.Simulator()
 		Simulator.set_endpoint(Brain.endpoint_state)
 		Simulator.set_joints(Brain.joints)
+	
 
 	while True:
 		Brain.update_sensor_state()
 		Brain.update_trajectory()
 		Brain.update_endpoint_state()
 		Brain.update_actuator_state()
-		#Brain.send_actuator_commands()
+
+		#Brain.print_diagnostics()
+		
+		if not Brain.limp():
+			pass
+			#Brain.send_actuator_commands()
+		else:
+			#Brain.send_actuator_commands()
+			break
 
 		if sim_on:
 			Simulator.set_endpoint(Brain.endpoint_state)
