@@ -1,3 +1,3 @@
 # quadrupod
 
-<img align="right" width="300"  src="{{site.baseurl}}/assets/img/robo-doggo-primary.jpg">
+<img align="left" width="300"  src="assets/img/robo-doggo-primary.jpg">
