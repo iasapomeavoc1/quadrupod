@@ -2,12 +2,31 @@ import numpy as np
 import math
 pi = math.pi
 
-
 ## Robot Dimensions
 O1A = np.array([[95],[90],[18]]); O1B = np.array([[95],[-90],[18]]); O1C = np.array([[-95],[90],[18]]); O1D = np.array([[-95],[-90],[18]]);
 O2A = np.array([[0],[25],[0]]);   O2B = np.array([[0],[25],[0]]);    O2C = np.array([[0],[-25],[0]]);    O2D = np.array([[0],[-25],[0]]);
 O3A = np.array([[0],[80],[0]]);   O3B = np.array([[0],[80],[0]]);    O3C = np.array([[0],[80],[0]]);    O3D = np.array([[0],[80],[0]]);
 O4A = np.array([[0],[-95],[0]]);  O4B = np.array([[0],[-95],[0]]);   O4C = np.array([[0],[-95],[0]]);   O4D = np.array([[0],[-95],[0]]);
+
+def generate_body_rpy(pts,r,p,y):
+	rc = math.cos(r); rs = math.sin(r)
+	pc = math.cos(p); ps = math.sin(p)
+	yc = math.cos(y); ys = math.sin(y)
+
+	return np.array([[[pts[0,0]],[pts[0,1]*rc-pts[0,2]*rs],[-pts[0,1]*rs-pts[0,2]*rc]],
+					 [[pts[1,0]],[pts[1,1]*rc-pts[1,2]*rs],[-pts[1,1]*rs-pts[1,2]*rc]],
+					 [[pts[2,0]],[pts[2,1]*rc-pts[2,2]*rs],[-pts[2,1]*rs-pts[2,2]*rc]],
+					 [[pts[3,0]],[pts[3,1]*rc-pts[3,2]*rs],[-pts[3,1]*rs-pts[3,2]*rc]]])
+
+def generate_triangle_wave(bottom,top,frequency):
+	wave = np.array([])
+	wave = np.append(wave,np.linspace(bottom,top,int(frequency/2)))
+	wave = np.append(wave,np.linspace(top,bottom,int(frequency/2)))
+	return wave
+
+def default_actuator_state():
+	return np.array([[0.00,2,-1.2],[0.00,2,-1.2],
+					 [0.00,2,-1.2],[0.00,2,-1.2]])
 
 def calcJacobian(pos,angs,joints):
 	JA = np.array([[0,-O3A[1]*math.sin(angs[0,1]),O4A[1]*math.sin(angs[0,2])],
@@ -66,10 +85,10 @@ def ik(pos,seed):
 		if iterations>300:
 			angs = seed
 			print("TOOK TOO LONG TO CONVERGE, ABORT")
+			print(errA,errB,errC,errD)
 			break
-		#print(errA,errB,errC,errD)
 	print("IK DONE in ",iterations," iterations")
-	return angs
+	return joints,angs
 
 def fk(angs):
 	# Input: joint angles (3x4) [radians]
@@ -117,6 +136,6 @@ def fk(angs):
 					   O1C + np.dot(U1C,O2C) , O1C + np.dot(U1C,(O2C+np.dot(U2C,O3C))) ,O1C + np.dot(U1C,(O2C + np.dot(U2C,O3C) + np.dot(U3C,O4C))),
 					   O1D + np.dot(U1D,O2D) , O1D + np.dot(U1D,(O2D+np.dot(U2D,O3D))) ,O1D + np.dot(U1D,(O2D + np.dot(U2D,O3D) + np.dot(U3D,O4D)))])
 
-	endpoints = joints[(2,5,8,11),:] 
+	endpoints = joints[(2,5,8,11),:]
 
 	return joints, endpoints
