@@ -39,9 +39,9 @@ class Brain():
 
 		## Body R-P-Y
 		cycle_len = 20
-		twr = kine.generate_triangle_wave(-5*pi/6,-7*pi/6,cycle_len)
-		twp = kine.generate_triangle_wave(-5*pi/6,-7*pi/6,cycle_len)
-		twy = kine.generate_triangle_wave(-5*pi/6,-7*pi/6,cycle_len)
+		twr = kine.generate_triangle_wave(-pi/10,pi/10,cycle_len)
+		twp = kine.generate_triangle_wave(-pi/10,pi/10,cycle_len)
+		twy = kine.generate_triangle_wave(-pi/10,pi/10,cycle_len)
 		for n in range(10):
 			for i in range(cycle_len):
 				self.traj = np.append(self.traj, kine.generate_body_rpy(self.traj[:,:,0],twr[i],twp[i],twy[i]),2)

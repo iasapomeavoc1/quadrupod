@@ -13,10 +13,10 @@ def generate_body_rpy(pts,r,p,y):
 	pc = math.cos(p); ps = math.sin(p)
 	yc = math.cos(y); ys = math.sin(y)
 
-	return np.array([[[pts[0,0]],[pts[0,1]*rc-pts[0,2]*rs],[-pts[0,1]*rs-pts[0,2]*rc]],
-					 [[pts[1,0]],[pts[1,1]*rc-pts[1,2]*rs],[-pts[1,1]*rs-pts[1,2]*rc]],
-					 [[pts[2,0]],[pts[2,1]*rc-pts[2,2]*rs],[-pts[2,1]*rs-pts[2,2]*rc]],
-					 [[pts[3,0]],[pts[3,1]*rc-pts[3,2]*rs],[-pts[3,1]*rs-pts[3,2]*rc]]])
+	return np.array([[[pts[0,0]],[pts[0,1]*rc-pts[0,2]*rs],[pts[0,1]*rs+pts[0,2]*rc]],
+					 [[pts[1,0]],[pts[1,1]*rc-pts[1,2]*rs],[pts[1,1]*rs+pts[1,2]*rc]],
+					 [[pts[2,0]],[pts[2,1]*rc-pts[2,2]*rs],[pts[2,1]*rs+pts[2,2]*rc]],
+					 [[pts[3,0]],[pts[3,1]*rc-pts[3,2]*rs],[pts[3,1]*rs+pts[3,2]*rc]]])
 
 def generate_triangle_wave(bottom,top,frequency):
 	wave = np.array([])
@@ -25,8 +25,8 @@ def generate_triangle_wave(bottom,top,frequency):
 	return wave
 
 def default_actuator_state():
-	return np.array([[0.00,2,-1.2],[0.00,2,-1.2],
-					 [0.00,2,-1.2],[0.00,2,-1.2]])
+	return np.array([[0.00,2.3,-.3],[0.00,2.3,-.3],
+					 [0.00,2.3,-.3],[0.00,2.3,-.3]])
 
 def calcJacobian(pos,angs,joints):
 	JA = np.array([[0,-O3A[1]*math.sin(angs[0,1]),O4A[1]*math.sin(angs[0,2])],
