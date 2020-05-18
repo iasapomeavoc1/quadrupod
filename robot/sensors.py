@@ -23,7 +23,3 @@ class Sensor_Interface():
 
 	def camera_data():
 		pass
-
-if __name__ == '__main__':
-	SI = Sensor_Interface()
-	print(SI.get_imu_data())
