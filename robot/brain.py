@@ -68,15 +68,14 @@ class Brain():
 		## Unravel the actuator state to a single dimension list to be iterated over
 		if self.actuator_interface is not None:
 			actuator_commands = np.ravel(self.actuator_state)
+			#servo commands shouldn't be referenced here, should all be in actuator_interface ###FIX!
 			if self.limp:
 				## Unload all servos
 				servo.unload_servos(self.actuator_interface.serial_port,actuator_interface.ID_list)
 			else:
 				## Iterate over the actuator ID's and command the actuator states over the serial interface
 				for i,ID in enumerate(self.actuator_interface.ID_list):
-					print(ID, actuator_commands[i],self.time_step)
-					print(type(ID),type(actuator_commands[i]),type(self.time_step))
-					servo.LobotSerialServoMove(self.actuator_interface.serial_port,ID,actuator_commands[i],self.time_step)
+					servo.LobotSerialServoMove(self.actuator_interface.serial_port,ID,self.actuator_interface.angs_to_counts(actuator_commands[i]),self.time_step)
 
 	def print_diagnostics(self):
 		print("Endpoint State: ", self.endpoint_state.ravel())
