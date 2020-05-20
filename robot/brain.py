@@ -67,7 +67,7 @@ class Brain():
 	def send_actuator_commands(self):
 		## Unravel the actuator state to a single dimension list to be iterated over
 		if self.actuator_interface is not None:
-			actuator_commands = np.ravel(self.actuator_interface.angs_2_counts(self.actuator_state))
+			actuator_commands = np.ravel(self.actuator_interface.angs_to_counts(self.actuator_state))
 			#servo commands shouldn't be referenced here, should all be in actuator_interface ###FIX!
 			if self.limp:
 				## Unload all servos
