@@ -22,6 +22,8 @@ while not robo_doggo_brain.limp:
 	robo_doggo_brain.update_trajectory()
 	robo_doggo_brain.update_endpoint_state()
 	robo_doggo_brain.update_actuator_state()
+	robo_doggo_brain.send_actuator_commands()
+
 	robo_doggo_brain.print_diagnostics()
 
 	time.sleep(robo_doggo_brain.time_step/1000.0)
