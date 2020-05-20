@@ -77,7 +77,7 @@ class Brain():
 				## Iterate over the actuator ID's and command the actuator states over the serial interface
 				for i,ID in enumerate(self.actuator_interface.ID_list):
 					print(ID,actuator_commands[i],self.time_step)
-					servo.LobotSerialServoMove(self.actuator_interface.serial_port,ID,actuator_commands[i],self.time_step)
+					servo.LobotSerialServoMove(self.actuator_interface.serial_port,ID,int(actuator_commands[i]),self.time_step)
 
 	def print_diagnostics(self):
 		print("Endpoint State: ", self.endpoint_state.ravel())
