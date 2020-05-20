@@ -1,6 +1,7 @@
 import robot.brain as brain
 import robot.actuators as actr
 import robot.sensors as snsr
+import serial
 
 servo_ID_list = (1,2,3,4,5,6,7,8,9,10,11,12)
 serial_port = serial.Serial('/dev/ttyS0',115200,timeout=1)

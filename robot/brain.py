@@ -24,27 +24,27 @@ class Brain():
 		self.traj = self.endpoint_state
 
 		## Trot while moving left
-		# cycle_len = 20
-		# twu = kine.generate_triangle_wave(-150,-100,cycle_len)
-		# twd = kine.generate_triangle_wave(-100,-150,cycle_len)
-		# twl = kine.generate_triangle_wave(-10,10,cycle_len)
-		# twr = kine.generate_triangle_wave(10,-10,cycle_len)
-		# for n in range(10):
-		# 	for i in range(cycle_len):
-		# 		self.traj = np.append(self.traj,
-		# 							  [[[95],[90+twl[i]],[twu[i]]],
-		# 							   [[95],[-90+twr[i]],[twd[i]]],
-		# 							   [[-95],[90+twr[i]],[twd[i]]],
-		# 							   [[-95],[-90+twl[i]],[twu[i]]]],2)
-
-		## Body R-P-Y
-		cycle_len = 20
-		twr = kine.generate_triangle_wave(-pi/10,pi/10,cycle_len)
-		twp = kine.generate_triangle_wave(-pi/10,pi/10,cycle_len)
-		twy = kine.generate_triangle_wave(-pi/10,pi/10,cycle_len)
+		cycle_len = 12
+		twu = kine.generate_triangle_wave(-150,-100,cycle_len)
+		twd = kine.generate_triangle_wave(-100,-150,cycle_len)
+		twl = kine.generate_triangle_wave(-10,10,cycle_len)
+		twr = kine.generate_triangle_wave(10,-10,cycle_len)
 		for n in range(10):
 			for i in range(cycle_len):
-				self.traj = np.append(self.traj, kine.generate_body_rpy(self.traj[:,:,0],twr[i],twp[i],twy[i]),2)
+				self.traj = np.append(self.traj,
+									  [[[95],[90+twl[i]],[twu[i]]],
+									   [[95],[-90+twr[i]],[twd[i]]],
+									   [[-95],[90+twr[i]],[twd[i]]],
+									   [[-95],[-90+twl[i]],[twu[i]]]],2)
+
+		## Body R-P-Y
+		# cycle_len = 20
+		# twr = kine.generate_triangle_wave(-pi/10,pi/10,cycle_len)
+		# twp = kine.generate_triangle_wave(-pi/10,pi/10,cycle_len)
+		# twy = kine.generate_triangle_wave(-pi/10,pi/10,cycle_len)
+		# for n in range(10):
+		# 	for i in range(cycle_len):
+		# 		self.traj = np.append(self.traj, kine.generate_body_rpy(self.traj[:,:,0],twr[i],twp[i],twy[i]),2)
 
 		self.traj_len = self.traj.shape[2]
 
