@@ -1,4 +1,5 @@
 import robot.lx16a_instructions
+import numpy as np
 
 class Actuator_Interface():
 	def __init__(self,serial_port,ID_list,calibration):
