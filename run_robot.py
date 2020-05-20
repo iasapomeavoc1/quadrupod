@@ -10,9 +10,9 @@ calibration = (np.array([[521.0,295.0,707.0],[484.0,222.0,656.0],[495.0,343.0,60
 			   np.array([[250.0,250.0,240.0],[250.0,240.0,240.0],[240.0,250.0,240.0],[240.0,250.0,240.0]]))
 
 actuator_interface = actr.Actuator_Interface(serial_port,servo_ID_list,calibration)
-sensor_interface = snsr.Sensor_Interface()
-
-print(sensor_interface.get_imu_data())
+#sensor_interface = snsr.Sensor_Interface()
+sensor_interface = None
+#print(sensor_interface.get_imu_data())
 
 robo_doggo_brain = brain.Brain(actuator_interface,sensor_interface)
 

@@ -7,7 +7,7 @@ class Actuator_Interface():
 		self.calibration = calibration ## a tuple of two arrays (4,3) of offsets and scaling factors (in counts)
 
 	def get_initial_actuator_state(self):
-		return counts_to_angs(np.reshape(servo.get_actuator_positions(self.serial_port,self.ID_list),(4,3)))
+		return self.counts_to_angs(np.reshape(servo.get_actuator_positions(self.serial_port,self.ID_list),(4,3)))
 
 	def angs_to_counts(self,angs):
 		return angs*self.calibration[1]+self.calibration[0]
