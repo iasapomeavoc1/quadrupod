@@ -1,4 +1,4 @@
-import robot.lx16a_instructions
+import robot.lx16a_instructions as servo
 import numpy as np
 
 class Actuator_Interface():
