@@ -1,4 +1,5 @@
 import robot.kinematics as kine
+import robot.lx16a_instructions as servo
 import numpy as np
 import math
 pi = math.pi
