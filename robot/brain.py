@@ -11,6 +11,7 @@ class Brain():
 
 		if self.actuator_interface is not None:
 			self.actuator_state = actuator_interface.get_initial_actuator_state() # On Robot, measure servo angles
+			print(self.actuator_state)
 		else:
 			self.actuator_state = kine.default_actuator_state() # In Simulation, start at default
 
@@ -75,6 +76,7 @@ class Brain():
 			else:
 				## Iterate over the actuator ID's and command the actuator states over the serial interface
 				for i,ID in enumerate(self.actuator_interface.ID_list):
+					print(ID,actuator_commands[i],self.time_step)
 					servo.LobotSerialServoMove(self.actuator_interface.serial_port,ID,actuator_commands[i],self.time_step)
 
 	def print_diagnostics(self):
