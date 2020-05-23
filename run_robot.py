@@ -5,12 +5,16 @@ import serial
 import numpy as np
 import time
 
-servo_ID_list = (1,2,3,4,5,6,7,8,9,10,11,12)
-serial_port = serial.Serial('/dev/ttyS0',115200,timeout=1)
-calibration = (np.array([[521.0,295.0,707.0],[484.0,222.0,656.0],[495.0,343.0,609.0],[483.0,205.0,656.0]]),
-			   np.array([[250.0,250.0,240.0],[250.0,240.0,240.0],[240.0,250.0,240.0],[240.0,250.0,240.0]]))
+port_name = '/dev/ttyS0'
+baud_rate = 115200
+ID_list = (1,2,3,4,5,6,7,8,9,10,11,12)
 
-actuator_interface = actr.Actuator_Interface(serial_port,servo_ID_list,calibration)
+# serial_port = serial.Serial('/dev/ttyS0',115200,timeout=1)
+# calibration = (np.array([[521.0,295.0,707.0],[484.0,222.0,656.0],[495.0,343.0,609.0],[483.0,205.0,656.0]]),
+# 			   np.array([[250.0,250.0,240.0],[250.0,240.0,240.0],[240.0,250.0,240.0],[240.0,250.0,240.0]]))
+
+actuator_interface = actr.Actuator_Interface(port_name,baud_rate,ID_list,calibration=None)
+
 #sensor_interface = snsr.Sensor_Interface()
 sensor_interface = None
 #print(sensor_interface.get_imu_data())
@@ -22,7 +26,7 @@ while not robo_doggo_brain.limp:
 	robo_doggo_brain.update_trajectory()
 	robo_doggo_brain.update_endpoint_state()
 	robo_doggo_brain.update_actuator_state()
-	robo_doggo_brain.send_actuator_commands()
+	#robo_doggo_brain.send_actuator_commands()
 
 	robo_doggo_brain.print_diagnostics()
 
