@@ -17,7 +17,7 @@ robo_doggo_simulator = sim.Simulator(fig,[robo_doggo_brain.joints,robo_doggo_bra
 while not robo_doggo_brain.limp:
 	robo_doggo_brain.update_endpoint_state()
 	robo_doggo_brain.update_actuator_state()
-	robo_doggo_brain.print_diagnostics()
+	#robo_doggo_brain.print_diagnostics()
 
 	robo_doggo_simulator.set_joints(robo_doggo_brain.joints)
 	robo_doggo_simulator.set_endpoint(robo_doggo_brain.endpoint_state)

@@ -34,9 +34,7 @@ LOBOT_SERVO_LED_ERROR_WRITE      =35
 LOBOT_SERVO_LED_ERROR_READ       =36
 
 class Actuator_Interface():
-	def __init__(self,port_name,baud_rate,ID_list,calibration=None):
-		self.port_name = port_name
-		self.baud_rate = baud_rate
+	def __init__(self,port_name,baud_rate,ID_list,calibration=None,debug=False):
 		self.ser = serial.Serial(port_name,baud_rate,timeout=1)
 		self.ID_list = ID_list
 		if calibration is not None:
@@ -44,17 +42,22 @@ class Actuator_Interface():
 		else:
 			self.run_calibration()
 
-	def run_calibration():
+		if debug:
+			while True:
+				print(self.get_actuator_counts())
+				time.sleep(0.1)
+
+	def run_calibration(self):
 		print("Running Actuator Calibration!")
 		input("Bring all actuators to nominal 0 position...press enter when finished")
 		offsets = np.reshape(self.get_actuator_counts(),(4,3))
-		input("Bring all actuators to nominal +90deg position...press enter when finished")
-		scaling = (np.reshape(self.get_actuator_counts(),(4,3))-offsets)/(math.pi/2)
-		return (offsets,scaling)
-		# calibration = (np.array([[521.0,295.0,707.0],[484.0,222.0,656.0],[495.0,343.0,609.0],[483.0,205.0,656.0]]),
-		# 	   np.array([[250.0,250.0,240.0],[250.0,240.0,240.0],[240.0,250.0,240.0],[240.0,250.0,240.0]]))
+		print("OFFSETS: ", offsets)
+		input("Bring all actuators to nominal +/-90deg position...press enter when finished")
+		scaling = np.absolute((np.reshape(self.get_actuator_counts(),(4,3))-offsets))/(math.pi/2)
+		print("SCALING: ", scaling)
+		self.calibration = (offsets,scaling)
 
-	def get_initial_actuator_state(self):
+	def get_actuator_angs(self):
 		return self.counts_to_angs(np.reshape(self.get_actuator_counts(),(4,3)))
 
 	def angs_to_counts(self,angs):
@@ -63,7 +66,22 @@ class Actuator_Interface():
 	def counts_to_angs(self,counts):
 		return (counts-self.calibration[0])/self.calibration[1]
 
-	def checkSum(buf):
+	def get_actuator_counts(self):
+		positions = []
+		for ID in self.ID_list:
+			positions.append(self.LobotSerialServoReadPosition(ID))
+		return positions
+
+	def stop_movement(self):
+		for ID in self.ID_list:
+			self.LobotSerialServoMoveStop(ID)
+
+	def unload_servos(self):
+		for ID in self.ID_list:
+			self.LobotSerialServoWriteLoadOrUnload(ID,0)
+			print("UNLOADED ID: ",ID)
+
+	def checkSum(self,buf):
 		check = 0
 		for i in range(2,buf[3]+2):
 			check+=buf[i]
@@ -77,8 +95,12 @@ class Actuator_Interface():
 		dataCount = 0
 		dataLength = -10
 		recvBuf = [None]*32
-		while ser.in_waiting:
-			rxBuf = ord(self.ser.read(size=1))
+		while self.ser.in_waiting:
+			rxBuf = self.ser.read(size=1)
+			if len(rxBuf)==0:
+				continue
+			else:
+				rxBuf = ord(rxBuf)
 			time.sleep(0.0001)
 			if not frameStarted:
 				if rxBuf == 0x55:
@@ -97,7 +119,7 @@ class Actuator_Interface():
 						frameStarted = False
 				dataCount+=1    
 				if dataCount == dataLength+1:
-					if checkSum(recvBuf)==recvBuf[dataCount+1]:
+					if self.checkSum(recvBuf)==recvBuf[dataCount+1]:
 						frameStarted = False
 						return 1, recvBuf
 					return -1, recvBuf
@@ -109,7 +131,7 @@ class Actuator_Interface():
 		buf.append(ID)
 		buf.append(3)
 		buf.append(LOBOT_SERVO_POS_READ)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		while self.ser.in_waiting:
 			self.ser.read(size=1)
 		self.ser.write(serial.to_bytes(buf))
@@ -117,7 +139,7 @@ class Actuator_Interface():
 			count-=1
 			if count<0:
 				return -2048
-		status,msg = LobotSerialServoReceiveHandle(self.ser)
+		status,msg = self.LobotSerialServoReceiveHandle()
 		if status > 0:
 			msg = (msg[6]<<8)|msg[5]
 		else:
@@ -130,7 +152,7 @@ class Actuator_Interface():
 		buf.append(ID)
 		buf.append(3)
 		buf.append(LOBOT_SERVO_TEMP_READ)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		while self.ser.in_waiting:
 			self.ser.read(size=1)
 		self.ser.write(serial.to_bytes(buf))
@@ -138,7 +160,7 @@ class Actuator_Interface():
 			count-=1
 			if count<0:
 				return -2048
-		status,msg = LobotSerialServoReceiveHandle(self.ser)
+		status,msg = self.LobotSerialServoReceiveHandle()
 		if status > 0:
 			msg = msg[5]
 		else:
@@ -151,7 +173,7 @@ class Actuator_Interface():
 		buf.append(ID)
 		buf.append(3)
 		buf.append(LOBOT_SERVO_LED_ERROR_READ)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		while self.ser.in_waiting:
 			self.ser.read(size=1)
 		self.ser.write(serial.to_bytes(buf))
@@ -159,7 +181,7 @@ class Actuator_Interface():
 			count-=1
 			if count<0:
 				return -2048
-		status,msg = LobotSerialServoReceiveHandle(self.ser)
+		status,msg = self.LobotSerialServoReceiveHandle()
 		if status > 0:
 			msg = msg[5]
 		else:
@@ -172,7 +194,7 @@ class Actuator_Interface():
 		buf.append(ID)
 		buf.append(3)
 		buf.append(LOBOT_SERVO_TEMP_MAX_LIMIT_READ)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		while self.ser.in_waiting:
 			self.ser.read(size=1)
 		self.ser.write(serial.to_bytes(buf))
@@ -180,7 +202,7 @@ class Actuator_Interface():
 			count-=1
 			if count<0:
 				return -2048
-		status,msg = LobotSerialServoReceiveHandle(self.ser)
+		status,msg = self.LobotSerialServoReceiveHandle()
 		if status > 0:
 			msg = msg[5]
 		else:
@@ -193,7 +215,7 @@ class Actuator_Interface():
 		buf.append(ID)
 		buf.append(3)
 		buf.append(LOBOT_SERVO_VIN_LIMIT_READ)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		while self.ser.in_waiting:
 			self.ser.read(size=1)
 		self.ser.write(serial.to_bytes(buf))
@@ -201,7 +223,7 @@ class Actuator_Interface():
 			count-=1
 			if count<0:
 				return -2048
-		status,msg = LobotSerialServoReceiveHandle(self.ser)
+		status,msg = self.LobotSerialServoReceiveHandle()
 		if status > 0:
 			msg = [(msg[6]<<8)|msg[5],(msg[8]<<8)|msg[7]]
 		else:
@@ -214,7 +236,7 @@ class Actuator_Interface():
 		buf.append(ID)
 		buf.append(3)
 		buf.append(LOBOT_SERVO_ANGLE_LIMIT_READ)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		while self.ser.in_waiting:
 			self.ser.read(size=1)
 		self.ser.write(serial.to_bytes(buf))
@@ -222,7 +244,7 @@ class Actuator_Interface():
 			count-=1
 			if count<0:
 				return -2048
-		status,msg = LobotSerialServoReceiveHandle(self.ser)
+		status,msg = self.LobotSerialServoReceiveHandle()
 		if status > 0:
 			msg = [(msg[6]<<8)|msg[5],(msg[8]<<8)|msg[7]]
 		else:
@@ -235,7 +257,7 @@ class Actuator_Interface():
 		buf.append(ID)
 		buf.append(3)
 		buf.append(LOBOT_SERVO_VIN_READ)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		while self.ser.in_waiting:
 			self.ser.read(size=1)
 		self.ser.write(serial.to_bytes(buf))
@@ -243,7 +265,7 @@ class Actuator_Interface():
 			count-=1
 			if count<0:
 				return -2048
-		status,msg = LobotSerialServoReceiveHandle(self.ser)
+		status,msg = self.LobotSerialServoReceiveHandle()
 		if status > 0:
 			msg = (msg[6]<<8)|msg[5]
 		else:
@@ -263,7 +285,7 @@ class Actuator_Interface():
 		buf.append(pos>>8)
 		buf.append(time&0xFF)
 		buf.append(time>>8)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		self.ser.write(serial.to_bytes(buf))
 
 	def LobotSerialServoWriteAngleLimits(self,ID,limits): #pos in counts, time in ms
@@ -289,7 +311,7 @@ class Actuator_Interface():
 		buf.append(minAng>>8)
 		buf.append(maxAng&0xFF)
 		buf.append(maxAng>>8)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		self.ser.write(serial.to_bytes(buf))
 
 	def LobotSerialServoWriteMaxTempLimit(self,ID,temp): #ID int in 1-255, temp in deg C
@@ -298,7 +320,7 @@ class Actuator_Interface():
 		buf.append(4)
 		buf.append(LOBOT_SERVO_TEMP_MAX_LIMIT_WRITE)
 		buf.append(temp)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		self.ser.write(serial.to_bytes(buf))
 
 	def LobotSerialServoWriteLoadOrUnload(self,ID,state): #ID int in 1-255, state is 0 for unload, 1 for load
@@ -307,7 +329,7 @@ class Actuator_Interface():
 		buf.append(4)
 		buf.append(LOBOT_SERVO_LOAD_OR_UNLOAD_WRITE)
 		buf.append(state)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		self.ser.write(serial.to_bytes(buf))
 
 	def LobotSerialServoMoveStop(self,ID): #ID int in 1-255, state is 0 for unload, 1 for load
@@ -315,7 +337,7 @@ class Actuator_Interface():
 		buf.append(ID)
 		buf.append(3)
 		buf.append(LOBOT_SERVO_MOVE_STOP)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		self.ser.write(serial.to_bytes(buf))
 
 	def LobotSerialWriteLEDError(self,ID,code): #ID int in 1-255, code int in 0-7 ##USE THIS TO RESET ERROR CODE TO 0###
@@ -324,7 +346,7 @@ class Actuator_Interface():
 		buf.append(4)
 		buf.append(LOBOT_SERVO_LED_ERROR_WRITE)
 		buf.append(code)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		self.ser.write(serial.to_bytes(buf))
 
 	def LobotSerialServoSetID(self,oldID,newID): #oldID int in 1-255, newID int in 1-255
@@ -333,22 +355,8 @@ class Actuator_Interface():
 		buf.append(4)
 		buf.append(LOBOT_SERVO_ID_WRITE)
 		buf.append(newID)
-		buf.append(checkSum(buf))
+		buf.append(self.checkSum(buf))
 		self.ser.write(serial.to_bytes(buf))
-
-	def get_actuator_counts(self):
-		positions = []
-		for ID in self.ID_list:
-			positions.append(LobotSerialServoReadPosition(self.ser,ID))
-		return positions
-
-	def stop_movement(self):
-		for ID in self.ID_list:
-			self.LobotSerialServoMoveStop(self.ser,ID)
-
-	def unload_servos(self):
-		for ID in self.ID_list:
-			self.LobotSerialServoWriteLoadOrUnload(self.ser,ID,0)
 
 if __name__ == '__main__':
 	pass

@@ -87,7 +87,7 @@ def ik(pos,seed):
 			print("TOOK TOO LONG TO CONVERGE, ABORT")
 			#print(errA,errB,errC,errD)
 			break
-	print("IK DONE in ",iterations," iterations")
+	#print("IK DONE in ",iterations," iterations")
 	return joints,angs
 
 def fk(angs):
