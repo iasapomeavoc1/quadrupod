@@ -1,6 +1,6 @@
 future==0.18.2
 iso8601==0.1.12
-PyYAML==5.3.1
+PyYAML==5.4
 RPi.GPIO==0.7.0
 serial==0.0.97
 smbus2==0.3.0
